@@ -8,7 +8,6 @@ rotation destination_rotation = ZERO_ROTATION;
 // sort of constants
 string SPAWN_LIST = "RezMeDaddy";
 integer CHANNEL = 0;
-integer DIE_AFTER_SECONDS = 7200;
 
 integer get_channel() {
     integer APP = 69;
@@ -50,11 +49,11 @@ default
             }
             integer name_divider = llSubStringIndex(data, "|");
             string name = llGetSubString(data, 0, name_divider - 1);
-            string pos_and_rot = llGetSubString(data, name_divider + 1, 0);
+            string pos_and_rot = llGetSubString(data, name_divider + 1, -1);
             llOwnerSay("pos_and_rot: " + pos_and_rot);
             integer pos_divider = llSubStringIndex(pos_and_rot, "|");
             destination_position = (vector)llGetSubString(pos_and_rot, 0, pos_divider - 1);
-            destination_rotation = (rotation)llGetSubString(pos_and_rot, pos_divider + 1, 0);
+            destination_rotation = (rotation)llGetSubString(pos_and_rot, pos_divider + 1, -1);
             vector my_position = llGetPos();
             line = line + 1;
 
