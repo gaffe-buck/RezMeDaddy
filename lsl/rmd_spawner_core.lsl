@@ -2,8 +2,8 @@
 integer line = 0;
 key handle = NULL_KEY;
 integer spawning = FALSE;
-vector destination_position = <0,0,0>;
-rotation destination_rotation = ZERO_ROTATION;
+integer loading = FALSE;
+list things = [];
 
 // sort of constants
 string SPAWN_LIST = "RezMeDaddy";
@@ -20,24 +20,48 @@ shutdown() {
     llRegionSay(CHANNEL, "DIE");
 }
 
+spawn_all() {
+    integer i;
+    integer lines = llGetListLength(things);
+    while (i < lines) {
+        string data = llList2String(things, i);
+        integer name_divider = llSubStringIndex(data, "|");
+        string name = llGetSubString(data, 0, name_divider - 1);
+        string pos_and_rot = llGetSubString(data, name_divider + 1, -1);
+        integer pos_divider = llSubStringIndex(pos_and_rot, "|");
+        rotation destination_rotation = (rotation)llGetSubString(pos_and_rot, pos_divider + 1, -1);
+        vector my_position = llGetPos();
+        line = line + 1;
+
+        llRezObject(name, my_position + <0,0,0.125>, ZERO_VECTOR, destination_rotation, i);
+        i = i + 1;
+    }
+}
+
 default
 {    
     state_entry()
-    {
+    {   
+        loading = FALSE;
+        llOwnerSay("Loading...");
+        handle = llGetNotecardLine(SPAWN_LIST, line);
         CHANNEL = get_channel();
         llListen(CHANNEL, "", "", "");
     }
 
     touch_start(integer total_number)
     {
-        if (spawning == TRUE) {
-            llOwnerSay("Already spawned...");
+        if (loading == TRUE) {
+            llOwnerSay("Still loading...");
+        }
+        else if (spawning == TRUE) {
+            llOwnerSay("Already spawning...");
         }
         else {
             line = 0;
             spawning = TRUE;
             llMessageLinked(LINK_THIS, 0, "BEG", llGetKey());
-            handle = llGetNotecardLine(SPAWN_LIST, line);
+            spawn_all();
         }
     }
 
@@ -45,19 +69,13 @@ default
     {
         if (queryid == handle) {
             if (data == EOF) {
+                llOwnerSay("Loaded " + (string)llGetListLength(things) + " things!");
+                loading = FALSE;
                 return;
             }
-            integer name_divider = llSubStringIndex(data, "|");
-            string name = llGetSubString(data, 0, name_divider - 1);
-            string pos_and_rot = llGetSubString(data, name_divider + 1, -1);
-            llOwnerSay("pos_and_rot: " + pos_and_rot);
-            integer pos_divider = llSubStringIndex(pos_and_rot, "|");
-            destination_position = (vector)llGetSubString(pos_and_rot, 0, pos_divider - 1);
-            destination_rotation = (rotation)llGetSubString(pos_and_rot, pos_divider + 1, -1);
-            vector my_position = llGetPos();
+            things = things + [data];
             line = line + 1;
-
-            llRezObject(name, my_position + <0,0,0.125>, ZERO_VECTOR, destination_rotation, 0);
+            handle = llGetNotecardLine(SPAWN_LIST, line);
         }
     }
 
@@ -73,10 +91,17 @@ default
     listen(integer channel, string name, key id, string message)
     {
         string command = llGetSubString(message, 0, 2);
-        if (command == "WHR")
+        if (command == "WHR" && spawning == TRUE)
         {
-            llRegionSay(CHANNEL, "MOV" + (string)destination_position);
-            handle = llGetNotecardLine(SPAWN_LIST, line);
+            integer index = (integer)llGetSubString(message, 3, -1);
+            string data = llList2String(things, index);
+            integer name_divider = llSubStringIndex(data, "|");
+            string pos_and_rot = llGetSubString(data, name_divider + 1, -1);
+            integer pos_divider = llSubStringIndex(pos_and_rot, "|");
+            vector destination_position = (vector)llGetSubString(pos_and_rot, 0, pos_divider - 1);
+            string response = "MOV" + (string)index + "|" + (string)destination_position;
+            llOwnerSay("core says: " + response);
+            llRegionSay(CHANNEL, response);
         }
         else if (command == "DIE") {
             shutdown();
