@@ -55,7 +55,7 @@ default
             llSay(0, "Still loading...");
         }
         else if (spawning == TRUE) {
-            llSay(0, "The clutter will be removed in 1 hour.");
+            llSay(0, "All rezzed! I'll clean up in 2 hours.");
             llMessageLinked(LINK_THIS, 0, "BEG", llGetKey());
         }
         else {
