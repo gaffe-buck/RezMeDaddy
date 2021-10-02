@@ -15,6 +15,7 @@ integer get_channel() {
 }
 
 shutdown() {
+    llSetLinkPrimitiveParamsFast(LINK_THIS, [PRIM_FULLBRIGHT, ALL_SIDES, TRUE]);
     spawning = FALSE;
     line = 0;
     llRegionSay(CHANNEL, "DIE");
@@ -43,7 +44,6 @@ default
     state_entry()
     {   
         loading = FALSE;
-        llOwnerSay("Loading...");
         handle = llGetNotecardLine(SPAWN_LIST, line);
         CHANNEL = get_channel();
         llListen(CHANNEL, "", "", "");
@@ -52,15 +52,17 @@ default
     touch_start(integer total_number)
     {
         if (loading == TRUE) {
-            llOwnerSay("Still loading...");
+            llSay(0, "Still loading...");
         }
         else if (spawning == TRUE) {
-            llOwnerSay("Already spawning...");
+            llSay(0, "The clutter will be removed in 1 hour.");
+            llMessageLinked(LINK_THIS, 0, "BEG", llGetKey());
         }
         else {
             line = 0;
             spawning = TRUE;
             llMessageLinked(LINK_THIS, 0, "BEG", llGetKey());
+            llSetLinkPrimitiveParamsFast(LINK_THIS, [PRIM_FULLBRIGHT, ALL_SIDES, FALSE]);
             spawn_all();
         }
     }
@@ -69,7 +71,7 @@ default
     {
         if (queryid == handle) {
             if (data == EOF) {
-                llOwnerSay("Loaded " + (string)llGetListLength(things) + " things!");
+                llSay(0, "Loaded " + (string)llGetListLength(things) + " things!");
                 loading = FALSE;
                 return;
             }
@@ -100,11 +102,17 @@ default
             integer pos_divider = llSubStringIndex(pos_and_rot, "|");
             vector destination_position = (vector)llGetSubString(pos_and_rot, 0, pos_divider - 1);
             string response = "MOV" + (string)index + "|" + (string)destination_position;
-            llOwnerSay("core says: " + response);
             llRegionSay(CHANNEL, response);
         }
         else if (command == "DIE") {
             shutdown();
+        }
+    }
+
+    changed(integer change)
+    {
+        if (change & CHANGED_INVENTORY) {
+            llResetScript();
         }
     }
 }
