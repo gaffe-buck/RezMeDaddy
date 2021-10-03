@@ -34,7 +34,7 @@ spawn_all() {
         vector my_position = llGetPos();
         line = line + 1;
 
-        llRezObject(name, my_position + <0,0,0.125>, ZERO_VECTOR, destination_rotation, i);
+        llRezObject(name, my_position + <0,0,10>, ZERO_VECTOR, destination_rotation, i);
         i = i + 1;
     }
 }
