@@ -1,4 +1,8 @@
-// Example entry. Get the lines for this notecard from rmd_get_line
+// Example entry. Get the lines for this notecard by putting the script rmd_get_line 
+// into the object you want to rez and then clicking it. It is just the name of the
+// object, its absolute position, and its rotation, separated by pipes.
+
 Streetlamp|<145.56230, 160.68000, 31.42920>|<0.00000, 0.00000, 0.00000, 1.00000>
 
 // Don't leave comments, extra spaces, or empty lines
+// Rename objects with pipes in the name or the item will fail to rez.
